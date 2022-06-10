@@ -1,0 +1,39 @@
+version: "3"
+
+vars:
+  OUT_DIR: dist
+  EXE_NAME: service{{exeExt}}
+  OUT_EXE: "{{.OUT_DIR}}/{{.EXE_NAME}}"
+
+tasks:
+  svc:build:
+    desc: build the service
+    cmds:
+      - go build -o {{.OUT_EXE}} cmd/service/main.go
+    sources:
+      - "cmd/service/main.go"
+      - "./**/*.go"
+    generates:
+      - "{{.OUT_EXE}}"
+
+  svc:run:
+    desc: run the service
+    cmds:
+      - "{{.OUT_EXE}} {{.CLI_ARGS}}"
+    deps:
+      - svc:build
+
+  vet:
+    desc: run vet tool
+    cmds:
+      - go vet -race $(go list ./...)
+
+  test:
+    desc: run test
+    cmds:
+      - go test -race $(go list ./... | grep -v cmd/service) {{.CLI_ARGS}}
+  
+  lint:
+    desc: run linter
+    cmds:
+      - golangci-lint run ./...
